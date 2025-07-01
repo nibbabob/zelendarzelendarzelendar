@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zelendar AI - Stop Being a Secretary to Your Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            --text-gradient: linear-gradient(135deg, #ffffff, #888888);
+            --bg-dark: #0a0a0a;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --border-subtle: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #aaa;
+            --text-muted: #888;
+            --accent-red: #ff6b6b;
+            --accent-teal: #4ecdc4;
+            --header-bg: rgba(18, 18, 18, 0.9);
+            
+            /* Responsive Design System */
+            --max-width: min(1400px, 95vw);
+            --content-padding: clamp(1rem, 4vw, 3rem);
+            --section-spacing: clamp(3rem, 8vw, 8rem);
+            --card-padding: clamp(1rem, 3vw, 2.5rem);
+            --gap-xs: clamp(0.5rem, 2vw, 0.75rem);
+            --gap-sm: clamp(0.75rem, 2.5vw, 1rem);
+            --gap-md: clamp(1rem, 3vw, 1.5rem);
+            --gap-lg: clamp(1.5rem, 4vw, 2rem);
+            --gap-xl: clamp(2rem, 5vw, 3rem);
+            
+            /* Typography Scale */
+            --text-xs: clamp(0.75rem, 2vw, 0.875rem);
+            --text-sm: clamp(0.875rem, 2.2vw, 1rem);
+            --text-base: clamp(1rem, 2.5vw, 1.125rem);
+            --text-lg: clamp(1.125rem, 2.8vw, 1.25rem);
+            --text-xl: clamp(1.25rem, 3.2vw, 1.5rem);
+            --text-2xl: clamp(1.5rem, 4vw, 2rem);
+            --text-3xl: clamp(2rem, 5vw, 2.5rem);
+            --text-4xl: clamp(2.5rem, 6vw, 3.5rem);
+            --text-5xl: clamp(3rem, 8vw, 5rem);
+            
+            /* Touch Targets */
+            --touch-target: max(44px, 3rem);
+            --touch-target-sm: max(40px, 2.5rem);
+        }
+
+        /* Performance optimizations */
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+            font-size: var(--text-base);
+            /* Optimize rendering */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* Improved animated background with will-change */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(78, 205, 196, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+            will-change: transform;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        /* Enhanced responsive header with containment */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
+            contain: layout style;
+            will-change: transform;
+        }
+
+        nav {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            padding: var(--gap-sm) var(--content-padding);
+            max-width: var(--max-width);
+            margin: 0 auto;
+            gap: var(--gap-md);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--gap-xs);
+            font-size: var(--text-xl);
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--gap-lg);
+            list-style: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: var(--gap-xs) 0;
+            font-size: var(--text-sm);
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .cta-button {
+            background: var(--primary-gradient);
+            color: white;
+            padding: var(--gap-sm) var(--gap-lg);
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: var(--text-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--touch-target);
+            white-space: nowrap;
+            /* Optimize transforms */
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px) translateZ(0);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Improved mobile menu */
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: var(--gap-xs);
+            background: none;
+            border: none;
+            position: relative;
+            z-index: 1001;
+            min-height: var(--touch-target-sm);
+            min-width: var(--touch-target-sm);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-primary);
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .mobile-menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100vh;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(20px);
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: var(--gap-xl);
+            z-index: 999;
+            will-change: right;
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: var(--text-2xl);
+            font-weight: 600;
+            padding: var(--gap-md);
+            transition: color 0.3s ease;
+            min-height: var(--touch-target);
+            display: flex;
+            align-items: center;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--accent-teal);
+        }
+
+        /* Enhanced responsive hero section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--content-padding);
+            position: relative;
+            contain: layout;
+        }
+
+        .hero-content {
+            max-width: min(900px, 100%);
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: var(--text-5xl);
+            font-weight: 700;
+            margin-bottom: var(--gap-lg);
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            will-change: opacity, transform;
+        }
+
+        .hero p {
+            font-size: var(--text-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--gap-xl);
+            max-width: min(700px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out 0.2s both;
+            will-change: opacity, transform;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: var(--gap-md);
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.4s both;
+            will-change: opacity, transform;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: white;
+            border: 1px solid var(--border-subtle);
+            padding: var(--gap-sm) var(--gap-lg);
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: var(--text-sm);
+            min-height: var(--touch-target);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) translateZ(0);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Highly improved demo preview responsiveness */
+        .demo-preview {
+            background: #1C1C1E;
+            border: 1px solid var(--border-subtle);
+            border-radius: clamp(12px, 3vw, 24px);
+            padding: clamp(12px, 3vw, 24px);
+            margin: clamp(-5vh, -8vh, -10vh) var(--content-padding) var(--section-spacing);
+            max-width: min(900px, 100%);
+            backdrop-filter: blur(20px);
+            z-index: 5;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            margin-left: auto;
+            margin-right: auto;
+            contain: layout style;
+        }
+
+        .demo-ui {
+            background: #121212;
+            border-radius: clamp(8px, 2vw, 16px);
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            display: flex;
+            align-items: center;
+            gap: var(--gap-sm);
+            padding: var(--gap-md);
+            background: #1D1D1F;
+        }
+        
+        .traffic-lights {
+            display: flex;
+            gap: var(--gap-xs);
+        }
+        
+        .light {
+            width: clamp(10px, 2vw, 12px);
+            height: clamp(10px, 2vw, 12px);
+            border-radius: 50%;
+        }
+        
+        .light.red { background: #FF5F56; }
+        .light.yellow { background: #FFBD2E; }
+        .light.green { background: #27C93F; }
+
+        .demo-input-container {
+            position: relative;
+            padding: var(--gap-md);
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: var(--gap-md) clamp(100px, 15vw, 120px) var(--gap-md) var(--gap-md);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            background: #2C2C2E;
+            color: white;
+            font-size: var(--text-base);
+            caret-color: var(--accent-teal);
+            transition: all 0.3s ease;
+            min-height: var(--touch-target);
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.2);
+        }
+
+        .demo-input.processing {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+        }
+
+        .demo-controls {
+            position: absolute;
+            right: clamp(20px, 4vw, 36px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: var(--gap-xs);
+        }
+
+        .demo-button, .voice-button {
+            background: var(--primary-gradient);
+            border: none;
+            width: clamp(36px, 8vw, 40px);
+            height: clamp(36px, 8vw, 40px);
+            border-radius: 10px;
+            color: white;
+            font-size: clamp(14px, 3vw, 18px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            min-width: var(--touch-target-sm);
+            min-height: var(--touch-target-sm);
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        .demo-button:hover, .voice-button:hover {
+            transform: scale(1.1) translateZ(0);
+        }
+
+        .voice-button {
+            background: #444;
+        }
+
+        .voice-button.recording {
+            background: var(--accent-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* AI Processing Indicator */
+        .ai-processing {
+            display: none;
+            padding: var(--gap-sm) var(--gap-md);
+            margin: 0 var(--gap-md);
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            border-radius: 8px;
+            font-size: var(--text-sm);
+            color: var(--accent-teal);
+            align-items: center;
+            gap: var(--gap-xs);
+        }
+
+        .ai-processing.active {
+            display: flex;
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-teal);
+            border-radius: 50%;
+            animation: thinking 1.4s infinite ease-in-out;
+        }
+
+        .thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes thinking {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Smart Suggestions */
+        .suggestions {
+            display: none;
+            margin: 0 var(--gap-md) var(--gap-md);
+            background: #1D1D1F;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+
+        .suggestions.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: var(--gap-sm) var(--gap-md);
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            min-height: var(--touch-target);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .suggestion-item .suggestion-text {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .suggestion-item .suggestion-details {
+            font-size: var(--text-xs);
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        /* Improved responsive calendar */
+        .demo-calendar {
+            background: #121212;
+            padding: 0 var(--gap-md) var(--gap-md);
+            position: relative;
+        }
+        
+        .demo-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--gap-md);
+            font-weight: 600;
+            color: #ccc;
+            font-size: var(--text-base);
+            gap: var(--gap-md);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: var(--gap-xs);
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            width: clamp(32px, 6vw, 40px);
+            height: clamp(32px, 6vw, 40px);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-sm);
+            transition: all 0.2s ease;
+            min-width: var(--touch-target-sm);
+            min-height: var(--touch-target-sm);
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: clamp(2px, 1vw, 6px);
+            max-width: 100%;
+        }
+        
+        .demo-day-header {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            margin-bottom: var(--gap-xs);
+            padding: var(--gap-xs);
+        }
+        
+        .demo-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: clamp(4px, 1.5vw, 8px);
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: clamp(32px, 8vw, 48px);
+            position: relative;
+            overflow: hidden;
+            will-change: transform, background-color;
+            transform: translateZ(0);
+        }
+
+        .demo-day:hover:not(.empty) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05) translateZ(0);
+        }
+
+        .demo-day.event {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .demo-day.event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .demo-day.has-event {
+            color: #ddd;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .demo-day.highlighted {
+            background: rgba(78, 205, 196, 0.3);
+            color: white;
+            animation: highlight-pulse 0.6s ease-in-out;
+        }
+
+        .demo-day.conflict {
+            background: rgba(255, 107, 107, 0.3);
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .demo-day.new-event {
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .demo-day.empty {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        @keyframes highlight-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(90deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Event tooltip */
+        .event-tooltip {
+            position: absolute;
+            background: #1D1D1F;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: var(--gap-xs) var(--gap-sm);
+            font-size: var(--text-xs);
+            color: var(--text-primary);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            max-width: min(200px, 50vw);
+            will-change: opacity, transform;
+        }
+
+        .event-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Success animations */
+        .success-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(39, 201, 63, 0.9);
+            color: white;
+            padding: var(--gap-sm) var(--gap-lg);
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: var(--text-sm);
+        }
+
+        .success-message.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        /* Enhanced sections with better responsive spacing */
+        .section {
+            padding: var(--section-spacing) var(--content-padding);
+            contain: layout style;
+        }
+
+        .section-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: var(--text-4xl);
+            font-weight: 700;
+            margin-bottom: var(--gap-xl);
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        /* Problem section */
+        .problem {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .problem h2 {
+            font-size: var(--text-4xl);
+            font-weight: 700;
+            margin-bottom: var(--gap-lg);
+            color: var(--accent-red);
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        .problem p.subtitle {
+            font-size: var(--text-lg);
+            color: var(--text-secondary);
+            max-width: min(800px, 100%);
+            margin: calc(-1 * var(--gap-md)) auto var(--gap-xl);
+            text-align: center;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: var(--gap-lg);
+            margin-top: var(--gap-xl);
+        }
+
+        .problem-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: var(--card-padding);
+            text-align: left;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .problem-item:hover {
+            transform: translateY(-4px) translateZ(0);
+            border-color: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .problem-item h3 {
+            color: var(--accent-red);
+            margin-bottom: var(--gap-sm);
+            font-size: var(--text-xl);
+            font-weight: 600;
+        }
+
+        .problem-item p {
+            color: var(--text-secondary);
+            font-size: var(--text-base);
+            line-height: 1.6;
+        }
+
+        /* Benefits grid with improved responsiveness */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+            gap: var(--gap-lg);
+        }
+
+        .benefit-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: var(--card-padding);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .benefit-card:hover::before {
+            opacity: 1;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-8px) translateZ(0);
+            border-color: rgba(78, 205, 196, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .benefit-icon {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--gap-lg);
+            display: block;
+            line-height: 1;
+        }
+
+        .benefit-card h3 {
+            font-size: var(--text-xl);
+            font-weight: 600;
+            margin-bottom: var(--gap-sm);
+            color: var(--text-primary);
+            position: relative;
+            z-index: 2;
+        }
+
+        .benefit-card p {
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 2;
+            line-height: 1.6;
+            font-size: var(--text-base);
+        }
+
+        /* How it works */
+        .how-it-works {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: var(--gap-xl);
+            margin-top: var(--gap-xl);
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: clamp(50px, 10vw, 60px);
+            height: clamp(50px, 10vw, 60px);
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-xl);
+            font-weight: 700;
+            margin: 0 auto var(--gap-lg);
+            color: white;
+        }
+
+        .step h3 {
+            font-size: var(--text-xl);
+            margin-bottom: var(--gap-sm);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: var(--text-base);
+        }
+
+        /* Pricing section with better responsive cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: var(--gap-lg);
+            margin-top: var(--gap-xl);
+            align-items: start;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: var(--card-padding);
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            height: fit-content;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .pricing-card.featured {
+            border-color: rgba(78, 205, 196, 0.5);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(78, 205, 196, 0.05));
+            transform: scale(1.02) translateZ(0);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            padding: var(--gap-xs) var(--gap-md);
+            border-radius: 12px;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .pricing-card h3 {
+            font-size: var(--text-xl);
+            font-weight: 600;
+            margin-bottom: var(--gap-md);
+            color: var(--text-primary);
+        }
+
+        /* Pricing Toggle Switch */
+        .pricing-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gap-md);
+            margin-bottom: var(--gap-xl);
+            flex-wrap: wrap;
+        }
+
+        .pricing-toggle-container .toggle-label {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .pricing-toggle-container .toggle-label:first-of-type {
+            color: var(--text-primary);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: var(--primary-gradient);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--accent-teal);
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .pricing-toggle-container .badge {
+            background: var(--accent-red);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            margin-left: var(--gap-xs);
+            white-space: nowrap;
+        }
+
+        /* Improved pricing display */
+        .price {
+            font-size: var(--text-4xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: var(--gap-md) 0;
+            line-height: 1;
+        }
+
+        .price-value {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            display: inline-block;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .price.changing .price-value {
+            transform: translateY(-5px);
+            opacity: 0;
+        }
+
+        .price-period {
+            color: var(--text-muted);
+            font-size: var(--text-base);
+            font-weight: 400;
+        }
+
+        .price-subtext {
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            margin-top: -0.5rem;
+            margin-bottom: var(--gap-md);
+        }
+
+        .features-list {
+            list-style: none;
+            margin: var(--gap-lg) 0;
+            text-align: left;
+        }
+
+        .features-list li {
+            padding: var(--gap-xs) 0;
+            color: var(--text-secondary);
+            position: relative;
+            padding-left: clamp(20px, 4vw, 24px);
+            font-size: var(--text-base);
+            line-height: 1.5;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-teal);
+            font-weight: bold;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: var(--text-4xl);
+            font-weight: 700;
+            margin-bottom: var(--gap-lg);
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .final-cta p {
+            font-size: var(--text-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--gap-xl);
+            max-width: min(600px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--header-bg);
+            padding: var(--gap-xl) var(--content-padding);
+            text-align: center;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: var(--text-base);
+        }
+
+        /* Enhanced responsive breakpoints */
+        @media (max-width: 1024px) {
+            :root {
+                --section-spacing: clamp(2.5rem, 6vw, 5rem);
+            }
+            
+            .demo-preview {
+                margin-top: clamp(-3vh, -5vh, -6vh);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: flex;
+            }
+            
+            nav {
+                grid-template-columns: auto auto;
+                justify-content: space-between;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: var(--gap-md);
+            }
+            
+            .hero-buttons .cta-button,
+            .hero-buttons .btn-secondary {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .demo-preview {
+                margin-left: var(--gap-md);
+                margin-right: var(--gap-md);
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .problem-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --content-padding: var(--gap-md);
+                --section-spacing: clamp(2rem, 8vw, 3rem);
+                --card-padding: var(--gap-md);
+            }
+
+            .demo-preview {
+                padding: var(--gap-sm);
+                border-radius: 12px;
+                margin-top: clamp(-2vh, -4vh, -5vh);
+            }
+            
+            .demo-input {
+                padding-right: clamp(80px, 20vw, 100px);
+            }
+
+            .demo-controls {
+                right: var(--gap-md);
+                gap: var(--gap-xs);
+            }
+
+            .demo-button, .voice-button {
+                width: clamp(32px, 10vw, 36px);
+                height: clamp(32px, 10vw, 36px);
+                font-size: clamp(12px, 3vw, 16px);
+            }
+            
+            .demo-grid {
+                gap: 2px;
+            }
+            
+            .demo-day {
+                min-height: clamp(28px, 8vw, 36px);
+                font-size: var(--text-xs);
+            }
+        }
+
+        @media (max-width: 360px) {
+            :root {
+                --content-padding: var(--gap-sm);
+            }
+            
+            .hero h1 {
+                font-size: clamp(2rem, 10vw, 3rem);
+            }
+            
+            .section-title {
+                font-size: clamp(1.75rem, 8vw, 2.5rem);
+            }
+        }
+
+        /* Enhanced animations and micro-interactions */
+        @media (prefers-reduced-motion: no-preference) {
+            .problem-item {
+                opacity: 0;
+                transform: translateY(40px);
+                transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1);
+            }
+
+            .problem-item.animate {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            .benefit-card {
+                opacity: 0;
+                transform: translateY(30px);
+                transition: all 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+            }
+
+            .benefit-card.animate {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Focus states for keyboard navigation */
+        .cta-button:focus,
+        .btn-secondary:focus,
+        .demo-input:focus,
+        .demo-button:focus,
+        .voice-button:focus,
+        .mobile-menu-toggle:focus {
+            outline: 2px solid var(--accent-teal);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --bg-card: rgba(255, 255, 255, 0.15);
+                --border-subtle: rgba(255, 255, 255, 0.4);
+                --text-secondary: #ddd;
+            }
+        }
+
+        /* Container queries for advanced responsiveness */
+        @container (max-width: 600px) {
+            .demo-grid {
+                gap: 1px;
+            }
+            
+            .demo-day-header {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Better focus management for mobile menu */
+        .mobile-menu a:focus,
+        .nav-links a:focus {
+            outline: 2px solid var(--accent-teal);
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+
+        /* Improved touch interactions */
+        @media (hover: none) and (pointer: coarse) {
+            .benefit-card:hover,
+            .problem-item:hover,
+            .pricing-card:hover {
+                transform: none;
+            }
+            
+            .demo-day:hover {
+                transform: none;
+            }
+            
+            .demo-button:hover,
+            .voice-button:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <header>
+        <nav>
+            <div class="logo">🧠 Zelendar</div>
+            <ul class="nav-links">
+                <li><a href="#benefits">The Cure</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="#pricing" class="cta-button">End Manual Entry</a>
+        </nav>
+        <div class="mobile-menu">
+            <a href="#benefits">The Cure</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#pricing" class="cta-button">End Manual Entry</a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Your Calendar is Not Your Job.</h1>
+            <p>Stop being an administrator of your own time. The endless, soul-crushing cycle of manual task entry is over. Zelendar AI gives you back your focus by automating your entire scheduling workflow.</p>
+            <div class="hero-buttons">
+                <a href="#pricing" class="cta-button">Reclaim My Time Now</a>
+                <a href="#problem" class="btn-secondary">Feel The Pain?</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="demo-preview">
+        <div class="demo-ui">
+             <div class="demo-header">
+                <div class="traffic-lights">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+            </div>
+            <div class="demo-input-container">
+                <input type="text" class="demo-input" placeholder="Type or say anything... e.g. 'Lunch with Sarah next Thursday at 1pm'" aria-label="Schedule input">
+                <div class="demo-controls">
+                    <button class="voice-button" aria-label="Voice input" title="Voice Input">🎤</button>
+                    <button class="demo-button" aria-label="Add to calendar" title="Add to Calendar">✨</button>
+                </div>
+            </div>
+            
+            <div class="ai-processing">
+                <span>🧠 AI analyzing your request</span>
+                <div class="thinking-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="suggestions">
+                <div class="suggestion-item">
+                    <div class="suggestion-text">Team standup tomorrow 9am</div>
+                    <div class="suggestion-details">Recurring weekly meeting</div>
+                </div>
+                <div class="suggestion-item">
+                    <div class="suggestion-text">Coffee with Alex Friday 3pm</div>
+                    <div class="suggestion-details">Based on your email context</div>
+                </div>
+                <div class="suggestion-item">
+                    <div class="suggestion-text">Block 2 hours for deep work</div>
+                    <div class="suggestion-details">Your most productive time</div>
+                </div>
+            </div>
+            
+            <div class="demo-calendar">
+                <div class="demo-calendar-header">
+                    <div class="calendar-nav">
+                        <button class="prev-month" aria-label="Previous month">‹</button>
+                        <button class="next-month" aria-label="Next month">›</button>
+                    </div>
+                    <span class="current-month">July 2025</span>
+                </div>
+                <div class="demo-grid">
+                    <div class="demo-day-header">S</div><div class="demo-day-header">M</div><div class="demo-day-header">T</div><div class="demo-day-header">W</div><div class="demo-day-header">T</div><div class="demo-day-header">F</div><div class="demo-day-header">S</div>
+                    <div class="demo-day empty"></div><div class="demo-day empty"></div><div class="demo-day has-event">1</div><div class="demo-day">2</div><div class="demo-day">3</div><div class="demo-day">4</div><div class="demo-day">5</div>
+                    <div class="demo-day">6</div><div class="demo-day has-event">7</div><div class="demo-day">8</div><div class="demo-day has-event">9</div><div class="demo-day event">10</div><div class="demo-day">11</div><div class="demo-day">12</div>
+                    <div class="demo-day">13</div><div class="demo-day">14</div><div class="demo-day">15</div><div class="demo-day has-event">16</div><div class="demo-day">17</div><div class="demo-day">18</div><div class="demo-day">19</div>
+                    <div class="demo-day">20</div><div class="demo-day">21</div><div class="demo-day">22</div><div class="demo-day">23</div><div class="demo-day">24</div><div class="demo-day">25</div><div class="demo-day">26</div>
+                    <div class="demo-day">27</div><div class="demo-day">28</div><div class="demo-day">29</div><div class="demo-day">30</div><div class="demo-day">31</div><div class="demo-day empty"></div><div class="demo-day empty"></div>
+                </div>
+                
+                <div class="event-tooltip"></div>
+                <div class="success-message">Event Added Successfully! 🎉</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="problem" class="section problem">
+        <div class="section-content">
+            <h2>The Silent Killer of Your Focus</h2>
+            <p class="subtitle">It's not just about lost minutes. It's the constant cognitive switching cost—the mental tax you pay every time you stop what you're doing to play a game of calendar Tetris.</p>
+            <div class="problem-grid">
+                <div class="problem-item">
+                    <h3>The Focus-Shattering "Quick Add"</h3>
+                    <p>You stop your deep work to "quickly add a task." 10 minutes later, you've lost your flow state entirely. This tiny act is a wrecking ball to your productivity.</p>
+                </div>
+                <div class="problem-item">
+                    <h3>The Sunday Night Dread-Planning</h3>
+                    <p>That sinking feeling of manually mapping out your week, knowing a single unexpected meeting on Monday will bring the whole fragile structure crashing down.</p>
+                </div>
+                <div class="problem-item">
+                    <h3>The Graveyard of Good Ideas</h3>
+                    <p>Brilliant ideas from meetings and emails go to die in your inbox or notebooks, because the friction of manually transferring them to your calendar is just too high.</p>
+                </div>
+                <div class="problem-item">
+                    <h3>The Rescheduling Black Hole</h3>
+                    <p>A client needs to move a meeting. Now you spend the next 20 minutes untangling dependencies and sending "Does this work?" emails, instead of doing actual work.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="benefits" class="section benefits">
+        <div class="section-content">
+            <h2 class="section-title">The Cure for Calendar Chaos</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <span class="benefit-icon">✍️→🧘</span>
+                    <h3>Enter Tasks with Zero Friction</h3>
+                    <p>Simply talk, type, or forward an email. Zelendar captures the intent and schedules it perfectly. You never need to open your calendar app to add an item again. Ever.</p>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">⚡</span>
+                    <h3>Reclaim Hours of Deep Work</h3>
+                    <p>Stop being a calendar admin. By eliminating manual entry and rescheduling, our users reclaim your time spent per week for focused, high-impact work.</p>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🧠</span>
+                    <h3>Protect Your Prime Time</h3>
+                    <p>Zelendar learns when you're most productive and automatically shields that time from inbound meetings and trivial tasks, creating the space you need to excel.</p>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🎯</span>
+                    <h3>Never Let an Idea Die Again</h3>
+                    <p>Forward any email, voice memo, or note. Zelendar understands the content and context, turning fleeting thoughts into scheduled, actionable tasks so nothing slips through.</p>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🔄</span>
+                    <h3>Make Rescheduling Disappear</h3>
+                    <p>When a conflict arises, Zelendar doesn't just notify you—it intelligently suggests the best alternative slots for everyone involved, resolving issues in one click.</p>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🛡️</span>
+                    <h3>Security You Can Trust</h3>
+                    <p>Your schedule is your life. We protect it with enterprise-grade, end-to-end encryption. Your data is yours alone, and we are fanatical about keeping it that way.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="section how-it-works">
+        <div class="section-content">
+            <h2 class="section-title">Your New Reality in 3 Steps</h2>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Connect in 60 Seconds</h3>
+                    <p>Securely sync your Google Calendar. It's a one-time setup for a lifetime of automated, intelligent scheduling.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Speak, Type, or Forward</h3>
+                    <p>Start interacting with your calendar as you would with a human assistant. Let the AI handle the tedious work of parsing and organizing.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Experience True Flow</h3>
+                    <p>Focus on your actual work, confident that your schedule is being perfectly optimized in the background. This is what effortless productivity feels like.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="section pricing">
+        <div class="section-content">
+            <h2 class="section-title">Invest in Your Focus & Productivity</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary); font-size: var(--text-lg);">Choose the plan that's right for you. All paid plans start with a 14-day free trial.</p>
+
+            <div class="pricing-toggle-container">
+                <span class="toggle-label">Monthly</span>
+                <label class="switch">
+                    <input type="checkbox" id="pricingToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Annual <span class="badge">Save 20%</span></span>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0<span class="price-period">/month</span></div>
+                    <ul class="features-list">
+                        <li>Basic AI task scheduling (10 tasks/month)</li>
+                        <li>Single calendar integration</li>
+                        <li>Core calendar UI access</li>
+                        <li>Standard email support</li>
+                        <li>*Limited access to AI features</li>
+                    </ul>
+                    <a href="#" class="btn-secondary" style="width: 100%; margin-top: 2rem;">Get Started Free</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Professional</h3>
+                    <div class="price">
+                        <span class="price-value" data-monthly="19" data-annual="15">$19</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <div class="price-subtext" style="display: none;">billed annually</div>
+                    <ul class="features-list">
+                        <li>Everything in Free, plus:</li>
+                        <li><b>Unlimited AI Task Scheduling</b></li>
+                        <li><b>Voice and Email Entry</b></li>
+                        <li>Multi-calendar integration</li>
+                        <li><b>Protective Scheduling AI</b> (shields focus time)</li>
+                        <li>Advanced productivity analytics</li>
+                        <li>Priority email support</li>
+                        <li>Smart rescheduling suggestions</li>
+                    </ul>
+                    <a href="#" class="cta-button" style="width: 100%; margin-top: 2rem;">Start 14-Day Free Trial</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Team</h3>
+                    <div class="price">
+                        <span class="price-value" data-monthly="39" data-annual="31">$39</span>
+                        <span class="price-period">/user/month</span>
+                    </div>
+                    <div class="price-subtext" style="display: none;">billed annually</div>
+                    <ul class="features-list">
+                        <li>Everything in Professional, plus:</li>
+                        <li><b>Team Calendar Coordination</b></li>
+                        <li>Delegated scheduling access</li>
+                        <li>Shared AI knowledge base</li>
+                        <li>Centralized billing & admin</li>
+                        <li>Team-wide analytics & reporting</li>
+                        <li>Dedicated onboarding & support</li>
+                    </ul>
+                    <a href="#" class="btn-secondary" style="width: 100%; margin-top: 2rem;">Contact Sales</a>
+                    <p style="text-align: center; margin-top: 1rem; font-size: var(--text-sm); color: var(--text-muted);">Volume discounts available.</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 3rem; color: var(--text-muted); font-size: var(--text-base);">Your time is your most valuable asset. Start your free trial and get it back.</p>
+        </div>
+    </section>
+
+    <section class="section final-cta">
+        <div class="section-content">
+            <h2>Stop the Manual Madness.</h2>
+            <p>The cost of manual entry isn't just time; it's your focus, momentum, and best ideas. Start your free trial and experience what it's like to be truly in control of your time.</p>
+            <a href="#pricing" class="cta-button" style="font-size: var(--text-lg); padding: var(--gap-md) var(--gap-xl);">Start Free & Reclaim Your Focus</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Zelendar AI. Your time, automated.</p>
+    </footer>
+
+    <script>
+        // Optimized demo functionality with performance improvements
+        class ZelendarDemo {
+            constructor() {
+                this.currentMonth = 'July 2025';
+                this.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                this.currentMonthIndex = 6; // July
+                this.currentYear = 2025;
+                
+                this.demoInput = document.querySelector('.demo-input');
+                this.demoButton = document.querySelector('.demo-button');
+                this.voiceButton = document.querySelector('.voice-button');
+                this.aiProcessing = document.querySelector('.ai-processing');
+                this.suggestions = document.querySelector('.suggestions');
+                this.calendarHeader = document.querySelector('.current-month');
+                this.successMessage = document.querySelector('.success-message');
+                this.tooltip = document.querySelector('.event-tooltip');
+                
+                this.isProcessing = false;
+                this.isRecording = false;
+                this.suggestionTimer = null;
+                this.scrollRAF = null;
+                this.resizeRAF = null;
+                
+                this.initializeEventListeners();
+                this.startPeriodicActivity();
+                this.setupCalendarEvents();
+            }
+
+            initializeEventListeners() {
+                // Debounced input handler
+                let inputDebounce;
+                this.demoInput.addEventListener('input', (e) => {
+                    clearTimeout(inputDebounce);
+                    inputDebounce = setTimeout(() => this.handleInputChange(e), 300);
+                });
+                
+                this.demoInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleSubmit();
+                });
+                
+                this.demoInput.addEventListener('focus', () => this.showSuggestions());
+                this.demoInput.addEventListener('blur', () => {
+                    setTimeout(() => this.hideSuggestions(), 200);
+                });
+
+                // Button interactions
+                this.demoButton.addEventListener('click', () => this.handleSubmit());
+                this.voiceButton.addEventListener('click', () => this.toggleVoiceInput());
+
+                // Calendar navigation
+                document.querySelector('.prev-month').addEventListener('click', () => this.navigateMonth(-1));
+                document.querySelector('.next-month').addEventListener('click', () => this.navigateMonth(1));
+
+                // Event delegation for suggestions
+                this.suggestions.addEventListener('click', (e) => {
+                    const item = e.target.closest('.suggestion-item');
+                    if (item) this.selectSuggestion(item);
+                });
+            }
+
+            handleInputChange(e) {
+                const value = e.target.value.toLowerCase();
+                
+                if (value.length > 2) {
+                    this.updateSuggestions(value);
+                    this.highlightRelevantDates(value);
+                } else {
+                    this.hideSuggestions();
+                    this.clearHighlights();
+                }
+            }
+
+            updateSuggestions(input) {
+                const suggestions = this.generateSmartSuggestions(input);
+                
+                if (suggestions.length > 0) {
+                    this.suggestions.innerHTML = suggestions.map(s => `
+                        <div class="suggestion-item" data-suggestion="${s.text}">
+                            <div class="suggestion-text">${s.text}</div>
+                            <div class="suggestion-details">${s.details}</div>
+                        </div>
+                    `).join('');
+                    
+                    this.showSuggestions();
+                }
+            }
+
+            generateSmartSuggestions(input) {
+                const suggestions = [];
+                
+                if (input.includes('lunch') || input.includes('coffee') || input.includes('meeting')) {
+                    suggestions.push({
+                        text: 'Lunch with Sarah Thursday 1pm',
+                        details: 'Automatically detected from your email'
+                    });
+                }
+                
+                if (input.includes('tomorrow') || input.includes('friday') || input.includes('thursday')) {
+                    suggestions.push({
+                        text: 'Team standup tomorrow 9am',
+                        details: 'Recurring weekly meeting'
+                    });
+                }
+                
+                if (input.includes('block') || input.includes('focus') || input.includes('work')) {
+                    suggestions.push({
+                        text: 'Block 2 hours for deep work',
+                        details: 'Your most productive time: 9-11am'
+                    });
+                }
+                
+                if (input.includes('call') || input.includes('phone')) {
+                    suggestions.push({
+                        text: 'Client call Monday 3pm',
+                        details: 'Based on your calendar patterns'
+                    });
+                }
+                
+                return suggestions.slice(0, 3);
+            }
+
+            highlightRelevantDates(input) {
+                requestAnimationFrame(() => {
+                    this.clearHighlights();
+                    
+                    const days = document.querySelectorAll('.demo-day:not(.empty)');
+                    
+                    if (input.includes('thursday') || input.includes('10')) {
+                        const day10 = Array.from(days).find(d => d.textContent === '10');
+                        if (day10) day10.classList.add('highlighted');
+                    }
+                    
+                    if (input.includes('tomorrow')) {
+                        const day10 = Array.from(days).find(d => d.textContent === '10');
+                        if (day10) day10.classList.add('highlighted');
+                    }
+                    
+                    if (input.includes('friday')) {
+                        const day11 = Array.from(days).find(d => d.textContent === '11');
+                        if (day11) day11.classList.add('highlighted');
+                    }
+                });
+            }
+
+            clearHighlights() {
+                document.querySelectorAll('.demo-day.highlighted, .demo-day.conflict').forEach(day => {
+                    day.classList.remove('highlighted', 'conflict');
+                });
+            }
+
+            showSuggestions() {
+                this.suggestions.classList.add('active');
+            }
+
+            hideSuggestions() {
+                this.suggestions.classList.remove('active');
+            }
+
+            selectSuggestion(item) {
+                const suggestionText = item.dataset.suggestion || item.querySelector('.suggestion-text').textContent;
+                this.demoInput.value = suggestionText;
+                this.hideSuggestions();
+                this.handleSubmit();
+            }
+
+            async handleSubmit() {
+                if (this.isProcessing) return;
+                
+                const inputValue = this.demoInput.value.trim();
+                if (!inputValue) return;
+                
+                this.isProcessing = true;
+                this.demoInput.classList.add('processing');
+                
+                // Show AI processing
+                this.aiProcessing.classList.add('active');
+                this.hideSuggestions();
+                
+                // Simulate AI processing time
+                await this.sleep(1500);
+                
+                // Process the input and add to calendar
+                requestAnimationFrame(() => {
+                    this.processInputAndAddEvent(inputValue);
+                    
+                    // Hide processing and show success
+                    this.aiProcessing.classList.remove('active');
+                    this.showSuccessMessage();
+                    
+                    // Reset input
+                    this.demoInput.value = '';
+                    this.demoInput.classList.remove('processing');
+                    this.isProcessing = false;
+                });
+            }
+
+            processInputAndAddEvent(input) {
+                const day = this.extractDayFromInput(input);
+                if (day) {
+                    this.addEventToCalendar(day, input);
+                } else {
+                    this.addEventToCalendar('15', input);
+                }
+            }
+
+            extractDayFromInput(input) {
+                const lower = input.toLowerCase();
+                
+                if (lower.includes('thursday') || lower.includes('10')) return '10';
+                if (lower.includes('friday') || lower.includes('11')) return '11';
+                if (lower.includes('tomorrow')) return '10';
+                if (lower.includes('monday')) return '14';
+                if (lower.includes('tuesday')) return '15';
+                if (lower.includes('wednesday')) return '16';
+                
+                const dayMatch = input.match(/\b(\d{1,2})\b/);
+                if (dayMatch && dayMatch[1] >= 1 && dayMatch[1] <= 31) {
+                    return dayMatch[1];
+                }
+                
+                return null;
+            }
+
+            addEventToCalendar(dayNumber, eventText) {
+                const days = document.querySelectorAll('.demo-day:not(.empty)');
+                const targetDay = Array.from(days).find(day => day.textContent === dayNumber);
+                
+                if (targetDay) {
+                    if (targetDay.classList.contains('has-event') || targetDay.classList.contains('event')) {
+                        targetDay.classList.add('conflict');
+                        setTimeout(() => {
+                            targetDay.classList.remove('conflict');
+                            targetDay.classList.add('event', 'new-event');
+                            this.addEventTooltip(targetDay, eventText);
+                        }, 600);
+                    } else {
+                        targetDay.classList.add('event', 'new-event');
+                        this.addEventTooltip(targetDay, eventText);
+                    }
+                    
+                    setTimeout(() => {
+                        targetDay.classList.remove('new-event');
+                    }, 500);
+                }
+            }
+
+            addEventTooltip(dayElement, eventText) {
+                let tooltipTimeout;
+                
+                dayElement.addEventListener('mouseenter', (e) => {
+                    clearTimeout(tooltipTimeout);
+                    tooltipTimeout = setTimeout(() => this.showTooltip(e, eventText), 100);
+                });
+                
+                dayElement.addEventListener('mouseleave', () => {
+                    clearTimeout(tooltipTimeout);
+                    this.hideTooltip();
+                });
+            }
+
+            showTooltip(event, text) {
+                const rect = event.target.getBoundingClientRect();
+                const containerRect = document.querySelector('.demo-calendar').getBoundingClientRect();
+                
+                this.tooltip.textContent = text.length > 50 ? text.substring(0, 50) + '...' : text;
+                this.tooltip.style.left = (rect.left - containerRect.left) + 'px';
+                this.tooltip.style.top = (rect.top - containerRect.top - 40) + 'px';
+                this.tooltip.classList.add('visible');
+            }
+
+            hideTooltip() {
+                this.tooltip.classList.remove('visible');
+            }
+
+            showSuccessMessage() {
+                this.successMessage.classList.add('visible');
+                setTimeout(() => {
+                    this.successMessage.classList.remove('visible');
+                }, 2000);
+            }
+
+            toggleVoiceInput() {
+                if (this.isRecording) {
+                    this.stopVoiceInput();
+                } else {
+                    this.startVoiceInput();
+                }
+            }
+
+            startVoiceInput() {
+                this.isRecording = true;
+                this.voiceButton.classList.add('recording');
+                
+                setTimeout(() => {
+                    const voiceInputs = [
+                        "Schedule lunch with Sarah next Thursday at 1pm",
+                        "Block 2 hours for deep work tomorrow morning",
+                        "Team meeting Friday at 3pm",
+                        "Call Alex about the project Monday"
+                    ];
+                    
+                    const randomInput = voiceInputs[Math.floor(Math.random() * voiceInputs.length)];
+                    this.typeTextWithAnimation(randomInput);
+                    this.stopVoiceInput();
+                }, 2000);
+            }
+
+            stopVoiceInput() {
+                this.isRecording = false;
+                this.voiceButton.classList.remove('recording');
+            }
+
+            typeTextWithAnimation(text) {
+                this.demoInput.value = '';
+                let i = 0;
+                const typeInterval = setInterval(() => {
+                    this.demoInput.value += text[i];
+                    i++;
+                    if (i >= text.length) {
+                        clearInterval(typeInterval);
+                        this.handleInputChange({ target: { value: text } });
+                    }
+                }, 50);
+            }
+
+            navigateMonth(direction) {
+                this.currentMonthIndex += direction;
+                
+                if (this.currentMonthIndex > 11) {
+                    this.currentMonthIndex = 0;
+                    this.currentYear++;
+                } else if (this.currentMonthIndex < 0) {
+                    this.currentMonthIndex = 11;
+                    this.currentYear--;
+                }
+                
+                this.currentMonth = `${this.months[this.currentMonthIndex]} ${this.currentYear}`;
+                this.calendarHeader.textContent = this.currentMonth;
+                
+                const calendar = document.querySelector('.demo-calendar');
+                calendar.style.transform = 'translateX(10px)';
+                setTimeout(() => {
+                    calendar.style.transform = 'translateX(0)';
+                }, 150);
+            }
+
+            setupCalendarEvents() {
+                const existingEvents = document.querySelectorAll('.demo-day.event, .demo-day.has-event');
+                existingEvents.forEach(event => {
+                    const eventTexts = [
+                        'Team Standup - 9:00 AM',
+                        'Client Call - 2:00 PM',
+                        'Project Review - 11:30 AM',
+                        'Lunch Meeting - 12:30 PM'
+                    ];
+                    const randomText = eventTexts[Math.floor(Math.random() * eventTexts.length)];
+                    this.addEventTooltip(event, randomText);
+                });
+            }
+
+            startPeriodicActivity() {
+                // Reduced frequency for better performance
+                setInterval(() => {
+                    if (!this.isProcessing && Math.random() < 0.2) {
+                        this.simulateBackgroundActivity();
+                    }
+                }, 12000);
+            }
+
+            simulateBackgroundActivity() {
+                const activities = [
+                    () => this.showBriefProcessing('Syncing with Google Calendar...'),
+                    () => this.showBriefProcessing('Checking for conflicts...'),
+                    () => this.showBriefProcessing('Optimizing your schedule...'),
+                ];
+                
+                const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+                randomActivity();
+            }
+
+            showBriefProcessing(message) {
+                const originalMessage = this.aiProcessing.querySelector('span').textContent;
+                this.aiProcessing.querySelector('span').textContent = message;
+                this.aiProcessing.classList.add('active');
+                
+                setTimeout(() => {
+                    this.aiProcessing.classList.remove('active');
+                    this.aiProcessing.querySelector('span').textContent = originalMessage;
+                }, 1500);
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the demo when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ZelendarDemo();
+        });
+
+        // Mobile menu and navigation code
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenuToggle.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+        });
+
+        // Improved Pricing Logic
+        const pricingToggle = document.getElementById('pricingToggle');
+        const priceElements = document.querySelectorAll('.pricing-card .price-value');
+        const periodElements = document.querySelectorAll('.pricing-card .price-period');
+        const subtextElements = document.querySelectorAll('.pricing-card .price-subtext');
+        const monthlyLabel = document.querySelector('.pricing-toggle-container .toggle-label:first-of-type');
+        const annualLabel = document.querySelector('.pricing-toggle-container .toggle-label:last-of-type');
+
+        function updatePrices() {
+            const isAnnual = pricingToggle.checked;
+
+            // Animate out current prices
+            priceElements.forEach(el => el.parentElement.classList.add('changing'));
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    priceElements.forEach(priceEl => {
+                        const monthlyPrice = priceEl.dataset.monthly;
+                        const annualPrice = priceEl.dataset.annual;
+                        const currentCard = priceEl.closest('.pricing-card');
+                        const subtextEl = currentCard.querySelector('.price-subtext');
+
+                        if (isAnnual) {
+                            priceEl.textContent = `$${annualPrice}`;
+                            if (subtextEl) subtextEl.style.display = 'block';
+                            
+                            // Update CTA links
+                            const ctaButton = currentCard.querySelector('.cta-button');
+                            if (ctaButton) ctaButton.href = '#start-trial?plan=pro-annual';
+                            const btnSecondary = currentCard.querySelector('.btn-secondary');
+                            if (btnSecondary && currentCard.querySelector('h3').textContent === 'Team') {
+                                btnSecondary.href = '#contact-sales?plan=team-annual';
+                            }
+                        } else {
+                            priceEl.textContent = `$${monthlyPrice}`;
+                            if (subtextEl) subtextEl.style.display = 'none';
+                            
+                            // Update CTA links
+                            const ctaButton = currentCard.querySelector('.cta-button');
+                            if (ctaButton) ctaButton.href = '#start-trial?plan=pro-monthly';
+                            const btnSecondary = currentCard.querySelector('.btn-secondary');
+                            if (btnSecondary && currentCard.querySelector('h3').textContent === 'Team') {
+                                btnSecondary.href = '#contact-sales?plan=team-monthly';
+                            }
+                        }
+                    });
+
+                    // Animate in new prices
+                    priceElements.forEach(el => {
+                        el.parentElement.classList.remove('changing');
+                        el.style.transform = 'translateY(0)';
+                        el.style.opacity = '1';
+                    });
+
+                    // Update label colors
+                    if (isAnnual) {
+                        monthlyLabel.style.color = 'var(--text-secondary)';
+                        annualLabel.style.color = 'var(--text-primary)';
+                    } else {
+                        monthlyLabel.style.color = 'var(--text-primary)';
+                        annualLabel.style.color = 'var(--text-secondary)';
+                    }
+                }, 150);
+            });
+        }
+
+        // Initial price setup
+        pricingToggle.checked = false;
+        updatePrices();
+
+        // Event listener for the toggle
+        pricingToggle.addEventListener('change', updatePrices);
+
+        document.querySelectorAll('.mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuToggle.classList.remove('active');
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const headerHeight = document.querySelector('header').offsetHeight;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Optimized header scroll with RAF
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        
+        function updateHeader() {
+            const header = document.querySelector('header');
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > 50) {
+                header.style.background = 'rgba(18, 18, 18, 0.95)';
+                header.style.transform = currentScrollY > lastScrollY ? 'translateY(-100%)' : 'translateY(0)';
+            } else {
+                header.style.background = 'rgba(18, 18, 18, 0.9)';
+                header.style.transform = 'translateY(0)';
+            }
+            
+            lastScrollY = currentScrollY;
+            ticking = false;
+        }
+        
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateHeader);
+                ticking = true;
+            }
+        });
+
+        // Optimized intersection observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            entry.target.classList.add('animate');
+                        }, index * 100);
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Only animate if user hasn't reduced motion
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.problem-item, .benefit-card').forEach(card => {
+                observer.observe(card);
+            });
+        } else {
+            document.querySelectorAll('.problem-item, .benefit-card').forEach(card => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            });
+        }
+
+        // Keyboard navigation improvements
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                mobileMenuToggle.classList.remove('active');
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Optimized resize handling
+        let resizeTimeout;
+        let resizing = false;
+        
+        window.addEventListener('resize', () => {
+            if (!resizing) {
+                resizing = true;
+                requestAnimationFrame(() => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        const demo = document.querySelector('.demo-preview');
+                        if (demo) {
+                            demo.style.transform = 'none';
+                            demo.offsetHeight; // Force reflow
+                        }
+                        resizing = false;
+                    }, 150);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
