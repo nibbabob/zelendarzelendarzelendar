@@ -1210,6 +1210,11 @@
                 margin-top: clamp(-3vh, -5vh, -6vh);
             }
         }
+		@media (max-width: 992px) {
+			#early-access-form {
+				flex-direction: column;
+			}
+		}
 
         @media (max-width: 768px) {
             .nav-links {
@@ -1418,12 +1423,14 @@
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#pricing">Pricing</a></li>
             </ul>
-            <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <a href="#early-access" class="cta-button">Get 2 Months Free</a>
+            <div style="display: flex; justify-content: flex-end; align-items: center;">
+				<a href="#early-access" class="cta-button" style="margin-right: 1rem;">Get 2 Months Free</a>
+				<button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+					<span></span>
+					<span></span>
+					<span></span>
+				</button>
+			</div>
         </nav>
         <div class="mobile-menu">
             <a href="#benefits">The Cure</a>
