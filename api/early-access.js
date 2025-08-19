@@ -48,7 +48,7 @@ export default async function handler(req) {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Zelendar Early Access <onboarding@resend.dev>',
+        from: 'no-reply@zelendar.com',
         to: YOUR_EMAIL,
         subject: '🎉 New Zelendar Early Access Signup!',
         html: `<p>A new user has signed up for early access:</p><strong>${email}</strong>`,
