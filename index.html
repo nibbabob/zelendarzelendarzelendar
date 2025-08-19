@@ -1673,7 +1673,8 @@
             <form id="early-access-form">
                 <input type="text" name="subject" style="position: absolute; left: -5000px;" tabindex="-1" autocomplete="off">
 
-                <input type="email" id="email-input" placeholder="Enter your email" required>
+                <input type="email" id="email-input" name="email" placeholder="Enter your email" required>
+                
                 <button type="submit" id="submit-button">Get Early Access</button>
             </form>
             <p id="form-message" style="margin-top: 1rem; height: 24px;"></p>
@@ -2111,20 +2112,15 @@
                             body: JSON.stringify({ email: email, honeypot: honeypot }),
                         });
 
-                        // This is the key change: check if the response is JSON before parsing
-                        const contentType = response.headers.get("content-type");
-                        if (contentType && contentType.indexOf("application/json") !== -1) {
-                            const result = await response.json();
-                            if (!response.ok) {
-                                throw new Error(result.error || 'An unknown error occurred.');
-                            }
-                            formMessage.textContent = "✅ Thank you! You're on the list.";
-                            formMessage.style.color = 'var(--accent-teal)';
-                            emailInput.value = '';
-                        } else {
-                            // If it's not JSON, it's likely the HTML 404 page
-                            throw new Error('Server function not found. Please check file location.');
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(result.error || 'An unknown error occurred.');
                         }
+                        
+                        formMessage.textContent = "✅ Thank you! You're on the list.";
+                        formMessage.style.color = 'var(--accent-teal)';
+                        emailInput.value = '';
 
                     } catch (error) {
                         formMessage.textContent = `Error: ${error.message}`;
