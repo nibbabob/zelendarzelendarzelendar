@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Alert Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .dashboards-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .dashboard-tab {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-width: 150px;
+        }
+
+        .dashboard-tab.active {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            border-color: transparent;
+        }
+
+        .dashboard-tab:hover {
+            border-color: #06b6d4;
+        }
+
+        .remove-dashboard {
+            margin-left: auto;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .alert-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .alert-coin {
+            font-size: 16px;
+            font-weight: 700;
+            color: #06b6d4;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .alert-source {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .alert-content {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: #334155;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-important {
+            background: #ef4444;
+            color: white;
+        }
+
+        .delete-alert {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            color: #ef4444;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-alert:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #06b6d4;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Crypto Alert Dashboard</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="openDashboardModal()">+ New Dashboard</button>
+                <button class="btn btn-primary" onclick="openAlertModal()">+ Create Alert</button>
+            </div>
+        </header>
+
+        <div class="dashboards-container" id="dashboardsContainer"></div>
+
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="grid" id="alertsGrid"></div>
+    </div>
+
+    <!-- Create Alert Modal -->
+    <div class="modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Custom Alert</h2>
+                <button class="close-modal" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <form onsubmit="saveAlert(event)">
+                <div class="form-group">
+                    <label>Alert Name</label>
+                    <input type="text" id="alertName" placeholder="e.g., Bitcoin Bull Run Signals" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Cryptocurrency</label>
+                    <select id="alertCoin" required>
+                        <option value="">Select a coin</option>
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="SOL">Solana (SOL)</option>
+                        <option value="ADA">Cardano (ADA)</option>
+                        <option value="XRP">Ripple (XRP)</option>
+                        <option value="DOT">Polkadot (DOT)</option>
+                        <option value="AVAX">Avalanche (AVAX)</option>
+                        <option value="MATIC">Polygon (MATIC)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Keywords to Monitor</label>
+                    <input type="text" id="alertKeywords" placeholder="e.g., bullish, adoption, partnership, regulation">
+                    <small style="color: #64748b; font-size: 12px;">Comma-separated keywords</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Data Sources</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-news" value="news" checked>
+                            <label for="source-news" style="margin: 0;">News Sites</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-twitter" value="twitter" checked>
+                            <label for="source-twitter" style="margin: 0;">Twitter/X</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-reddit" value="reddit">
+                            <label for="source-reddit" style="margin: 0;">Reddit</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-telegram" value="telegram">
+                            <label for="source-telegram" style="margin: 0;">Telegram</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-fed" value="fed">
+                            <label for="source-fed" style="margin: 0;">Federal Reserve</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-sec" value="sec">
+                            <label for="source-sec" style="margin: 0;">SEC Filings</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-blockchain" value="blockchain">
+                            <label for="source-blockchain" style="margin: 0;">Blockchain Data</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="source-youtube" value="youtube">
+                            <label for="source-youtube" style="margin: 0;">YouTube</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Alert Priority</label>
+                    <select id="alertPriority">
+                        <option value="normal">Normal</option>
+                        <option value="important">Important</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAlertModal()" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Dashboard Modal -->
+    <div class="modal" id="dashboardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Dashboard</h2>
+                <button class="close-modal" onclick="closeDashboardModal()">&times;</button>
+            </div>
+            <form onsubmit="saveDashboard(event)">
+                <div class="form-group">
+                    <label>Dashboard Name</label>
+                    <input type="text" id="dashboardName" placeholder="e.g., DeFi Tokens, Top 10 Coins" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description (Optional)</label>
+                    <textarea id="dashboardDesc" placeholder="What will you track on this dashboard?"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeDashboardModal()" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create Dashboard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        const data = {
+            dashboards: [
+                { id: 1, name: 'Main', description: 'Primary tracking dashboard' }
+            ],
+            alerts: {},
+            activeDashboard: 1
+        };
+
+        // Sample alerts for demo
+        const sampleAlerts = [
+            {
+                id: Date.now() + 1,
+                name: 'Bitcoin Bull Signals',
+                coin: 'BTC',
+                keywords: ['bullish', 'institutional', 'adoption'],
+                sources: ['news', 'twitter', 'fed'],
+                priority: 'important',
+                matches: [
+                    {
+                        source: 'CoinDesk',
+                        content: 'BlackRock files for Bitcoin ETF with unprecedented institutional backing',
+                        time: '2 hours ago',
+                        tags: ['institutional', 'bullish']
+                    },
+                    {
+                        source: 'Twitter @crypto_analyst',
+                        content: 'BTC breaking major resistance at $43K. Strong buying pressure from institutions.',
+                        time: '4 hours ago',
+                        tags: ['bullish', 'technical']
+                    }
+                ]
+            },
+            {
+                id: Date.now() + 2,
+                name: 'ETH Network Updates',
+                coin: 'ETH',
+                keywords: ['upgrade', 'gas', 'staking'],
+                sources: ['news', 'reddit', 'blockchain'],
+                priority: 'normal',
+                matches: [
+                    {
+                        source: 'Ethereum Foundation',
+                        content: 'Dencun upgrade successfully deployed on mainnet. Gas fees reduced by 40%.',
+                        time: '1 day ago',
+                        tags: ['upgrade', 'gas']
+                    }
+                ]
+            }
+        ];
+
+        // Initialize with sample data
+        data.alerts[1] = sampleAlerts;
+
+        // Modal functions
+        function openAlertModal() {
+            document.getElementById('alertModal').classList.add('active');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.remove('active');
+            document.querySelector('#alertModal form').reset();
+        }
+
+        function openDashboardModal() {
+            document.getElementById('dashboardModal').classList.add('active');
+        }
+
+        function closeDashboardModal() {
+            document.getElementById('dashboardModal').classList.remove('active');
+            document.querySelector('#dashboardModal form').reset();
+        }
+
+        // Save alert
+        function saveAlert(e) {
+            e.preventDefault();
+
+            const sources = [];
+            document.querySelectorAll('#alertModal input[type="checkbox"]:checked').forEach(cb => {
+                sources.push(cb.value);
+            });
+
+            const alert = {
+                id: Date.now(),
+                name: document.getElementById('alertName').value,
+                coin: document.getElementById('alertCoin').value,
+                keywords: document.getElementById('alertKeywords').value.split(',').map(k => k.trim()),
+                sources: sources,
+                priority: document.getElementById('alertPriority').value,
+                matches: []
+            };
+
+            if (!data.alerts[data.activeDashboard]) {
+                data.alerts[data.activeDashboard] = [];
+            }
+
+            data.alerts[data.activeDashboard].push(alert);
+            closeAlertModal();
+            renderAlerts();
+        }
+
+        // Save dashboard
+        function saveDashboard(e) {
+            e.preventDefault();
+
+            const dashboard = {
+                id: Date.now(),
+                name: document.getElementById('dashboardName').value,
+                description: document.getElementById('dashboardDesc').value
+            };
+
+            data.dashboards.push(dashboard);
+            data.alerts[dashboard.id] = [];
+            closeDashboardModal();
+            renderDashboards();
+        }
+
+        // Delete alert
+        function deleteAlert(alertId) {
+            if (confirm('Delete this alert?')) {
+                const alerts = data.alerts[data.activeDashboard];
+                const index = alerts.findIndex(a => a.id === alertId);
+                if (index > -1) {
+                    alerts.splice(index, 1);
+                    renderAlerts();
+                }
+            }
+        }
+
+        // Switch dashboard
+        function switchDashboard(id) {
+            data.activeDashboard = id;
+            renderDashboards();
+            renderAlerts();
+        }
+
+        // Remove dashboard
+        function removeDashboard(e, id) {
+            e.stopPropagation();
+            if (data.dashboards.length === 1) {
+                alert('Cannot delete the last dashboard');
+                return;
+            }
+            if (confirm('Delete this dashboard and all its alerts?')) {
+                data.dashboards = data.dashboards.filter(d => d.id !== id);
+                delete data.alerts[id];
+                if (data.activeDashboard === id) {
+                    data.activeDashboard = data.dashboards[0].id;
+                }
+                renderDashboards();
+                renderAlerts();
+            }
+        }
+
+        // Render functions
+        function renderDashboards() {
+            const container = document.getElementById('dashboardsContainer');
+            container.innerHTML = data.dashboards.map(dashboard => `
+                <div class="dashboard-tab ${dashboard.id === data.activeDashboard ? 'active' : ''}" 
+                     onclick="switchDashboard(${dashboard.id})">
+                    <span>${dashboard.name}</span>
+                    ${data.dashboards.length > 1 ? `<button class="remove-dashboard" onclick="removeDashboard(event, ${dashboard.id})">×</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderAlerts() {
+            const alerts = data.alerts[data.activeDashboard] || [];
+            const grid = document.getElementById('alertsGrid');
+            
+            // Render stats
+            const totalAlerts = alerts.length;
+            const totalMatches = alerts.reduce((sum, alert) => sum + alert.matches.length, 0);
+            const statsRow = document.getElementById('statsRow');
+            
+            statsRow.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalAlerts}</div>
+                    <div class="stat-label">Active Alerts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalMatches}</div>
+                    <div class="stat-label">Total Matches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${alerts.filter(a => a.priority === 'important').length}</div>
+                    <div class="stat-label">Important</div>
+                </div>
+            `;
+
+            if (alerts.length === 0) {
+                grid.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <h3>No alerts yet</h3>
+                            <p style="margin-top: 10px;">Create your first custom alert to start monitoring crypto news and signals</p>
+                            <button class="btn btn-primary" onclick="openAlertModal()" style="margin-top: 20px;">Create Alert</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = alerts.map(alert => {
+                let matchesHtml = '';
+                if (alert.matches.length > 0) {
+                    matchesHtml = '<div style="border-top: 1px solid #334155; padding-top: 15px; margin-top: 15px;">';
+                    matchesHtml += '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Recent Matches:</div>';
+                    matchesHtml += alert.matches.map(match => {
+                        let tagsHtml = '';
+                        if (match.tags) {
+                            tagsHtml = '<div class="filter-tags">';
+                            tagsHtml += match.tags.map(tag => '<span class="tag">' + tag + '</span>').join('');
+                            tagsHtml += '</div>';
+                        }
+                        return '<div class="alert-item">' +
+                            '<button class="delete-alert" onclick="deleteMatch(' + alert.id + ', \'' + match.source + '\')">×</button>' +
+                            '<div class="alert-header">' +
+                                '<span class="alert-source">' + match.source + '</span>' +
+                                '<span class="alert-time">' + match.time + '</span>' +
+                            '</div>' +
+                            '<div class="alert-content">' + match.content + '</div>' +
+                            tagsHtml +
+                        '</div>';
+                    }).join('');
+                    matchesHtml += '</div>';
+                }
+
+                return `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">${alert.name}</h3>
+                        ${alert.priority === 'important' ? '<span class="badge badge-important">Important</span>' : ''}
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <span style="font-weight: 600; color: #06b6d4; font-size: 20px;">${alert.coin}</span>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                            ${alert.matches.length} match${alert.matches.length !== 1 ? 'es' : ''} found
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">Tracking:</div>
+                        <div class="filter-tags">
+                            ${alert.keywords.map(kw => '<span class="tag">' + kw + '</span>').join('')}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">Sources:</div>
+                        <div class="filter-tags">
+                            ${alert.sources.map(src => '<span class="tag">' + src + '</span>').join('')}
+                        </div>
+                    </div>
+
+                    ${matchesHtml}
+
+                    <button class="btn btn-danger" onclick="deleteAlert(${alert.id})" style="width: 100%; margin-top: 15px;">
+                        Delete Alert
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function deleteMatch(alertId, source) {
+            const alerts = data.alerts[data.activeDashboard];
+            const alert = alerts.find(a => a.id === alertId);
+            if (alert) {
+                alert.matches = alert.matches.filter(m => m.source !== source);
+                renderAlerts();
+            }
+        }
+
+        // Initial render
+        renderDashboards();
+        renderAlerts();
+
+        // Close modals on outside click
+        document.getElementById('alertModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAlertModal();
+        });
+
+        document.getElementById('dashboardModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDashboardModal();
+        });
+    </script>
+</body>
+</html>
